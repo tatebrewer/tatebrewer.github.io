@@ -66,8 +66,27 @@ function placeBet() {
         playerBalance -= currentBet; // Deduct the bet amount from balance
         updateHands();
         document.getElementById("game-status").innerText = `Bet placed: $${currentBet}`;
+        playGame(); // Start the game after placing the bet
     } else {
         document.getElementById("game-status").innerText = "Invalid bet amount!";
+    }
+}
+
+// Function to handle game flow
+function playGame() {
+    createDeck();
+    playerHand = [deck.pop(), deck.pop()];
+    dealerHand = [deck.pop(), deck.pop()];
+
+    // Check if player or dealer has blackjack (Ace + 10/Jack/Queen/King)
+    if (calculateHandValue(playerHand) === 21 && calculateHandValue(dealerHand) !== 21) {
+        document.getElementById("game-status").innerText = "Blackjack! Player wins!";
+        playerBalance += currentBet * 2.5; // Player wins 2.5x the bet for blackjack
+    } else if (calculateHandValue(dealerHand) === 21 && calculateHandValue(playerHand) !== 21) {
+        document.getElementById("game-status").innerText = "Dealer has Blackjack! Dealer wins!";
+    } else {
+        updateHands();
+        document.getElementById("game-status").innerText = "Game in progress";
     }
 }
 
@@ -85,16 +104,6 @@ function stand() {
     }
     updateHands();
     checkGameOver(true);
-}
-
-// Function to reset the game
-function resetGame() {
-    createDeck();
-    playerHand = [deck.pop(), deck.pop()];
-    dealerHand = [deck.pop(), deck.pop()];
-    currentBet = 10; // Reset bet amount
-    updateHands();
-    document.getElementById("game-status").innerText = "";
 }
 
 // Function to check if the game is over and determine the winner
@@ -121,17 +130,15 @@ function checkGameOver(isStand = false) {
     }
 
     updateHands();
+
+    // Automatically start a new game after a brief delay
+    setTimeout(playGame, 2000);
 }
 
 // Event listeners for the buttons
 document.getElementById("place-bet").addEventListener("click", placeBet);
 document.getElementById("hit").addEventListener("click", hit);
 document.getElementById("stand").addEventListener("click", stand);
-document.getElementById("reset").addEventListener("click", function() {
-    resetGame();
-    document.getElementById("hit").disabled = false;
-    document.getElementById("stand").disabled = false;
-});
 
 // Initialize the game
-resetGame();
+playGame();
