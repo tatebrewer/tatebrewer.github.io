@@ -2,6 +2,7 @@ let deck = [];
 let playerHand = [];
 let dealerHand = [];
 let playerBalance = 100;
+let currentBet = 10; // Default bet amount
 
 const suits = ["Hearts", "Spades", "Clubs", "Diamonds"];
 const values = [
@@ -49,11 +50,25 @@ function updateHands() {
     document.getElementById("player-hand").innerText = `Player: ${handToString(playerHand)} (${calculateHandValue(playerHand)})`;
     document.getElementById("dealer-hand").innerText = `Dealer: ${handToString(dealerHand)} (${calculateHandValue(dealerHand)})`;
     document.getElementById("balance").innerText = `Balance: $${playerBalance}`;
+    document.getElementById("bet").value = currentBet;
 }
 
 // Function to convert a hand to a string
 function handToString(hand) {
     return hand.map(card => `${card.value} of ${card.suit}`).join(", ");
+}
+
+// Function to handle placing a bet
+function placeBet() {
+    let betAmount = parseInt(document.getElementById("bet").value);
+    if (betAmount > 0 && betAmount <= playerBalance) {
+        currentBet = betAmount;
+        playerBalance -= currentBet; // Deduct the bet amount from balance
+        updateHands();
+        document.getElementById("game-status").innerText = `Bet placed: $${currentBet}`;
+    } else {
+        document.getElementById("game-status").innerText = "Invalid bet amount!";
+    }
 }
 
 // Function for the player to draw a card
@@ -77,6 +92,7 @@ function resetGame() {
     createDeck();
     playerHand = [deck.pop(), deck.pop()];
     dealerHand = [deck.pop(), deck.pop()];
+    currentBet = 10; // Reset bet amount
     updateHands();
     document.getElementById("game-status").innerText = "";
 }
@@ -89,19 +105,18 @@ function checkGameOver(isStand = false) {
     // Check if the player busts
     if (playerValue > 21) {
         document.getElementById("game-status").innerText = "Player busts! Dealer wins!";
-        playerBalance -= 10; // Player loses $10
     } else if (dealerValue > 21) { // Check if the dealer busts
         document.getElementById("game-status").innerText = "Dealer busts! Player wins!";
-        playerBalance += 10; // Player wins $10
+        playerBalance += currentBet * 2; // Player wins 2x the bet
     } else if (isStand) { // Check the result when the player stands
         if (playerValue > dealerValue) {
             document.getElementById("game-status").innerText = "Player wins!";
-            playerBalance += 10; // Player wins $10
+            playerBalance += currentBet * 2; // Player wins 2x the bet
         } else if (playerValue < dealerValue) {
             document.getElementById("game-status").innerText = "Dealer wins!";
-            playerBalance -= 10; // Player loses $10
         } else {
             document.getElementById("game-status").innerText = "It's a tie!";
+            playerBalance += currentBet; // Return the bet amount for a tie
         }
     }
 
@@ -109,6 +124,7 @@ function checkGameOver(isStand = false) {
 }
 
 // Event listeners for the buttons
+document.getElementById("place-bet").addEventListener("click", placeBet);
 document.getElementById("hit").addEventListener("click", hit);
 document.getElementById("stand").addEventListener("click", stand);
 document.getElementById("reset").addEventListener("click", function() {
